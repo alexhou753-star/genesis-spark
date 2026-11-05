@@ -12,9 +12,8 @@
  * （按位运算的 ToInt32/ToUint32 转换、Math.imul 的精确 32 位乘法、以及
  * IEEE-754 双精度下「单次 + - * /」的正确舍入）。这些语义三内核必须一致。
  *
- * 注：测试文件一律 import './math.js'（带 .js 扩展的相对路径），符合
- * TS `module: nodenext` 的 ESM 解析规则；本文件无任何第三方包依赖，
- * 最终会并入 packages/engine。
+ * 注：单测位于 packages/engine/test/，一律 import '../src/math.js'（带 .js 扩展的相对路径），
+ * 符合 TS `module: nodenext` 的 ESM 解析规则；本文件无任何第三方包依赖。
  */
 
 /**

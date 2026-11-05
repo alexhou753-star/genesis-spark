@@ -4,5 +4,6 @@ out/
 dist/
 .DS_Store
 *.bak
-*.d.ts
-*.d.ts.map
+packages/*/src/*.js
+packages/*/src/*.d.ts
+packages/*/src/*.d.ts.map

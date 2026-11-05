@@ -13,10 +13,12 @@
     "typecheck": "node node_modules/typescript/bin/tsc -b packages/configs packages/engine packages/save",
     "gate1": "node packages/configs/out/src/gate1.js",
     "gate1:mutations": "node packages/configs/out/src/gate1.mutations.js",
-    "verify": "npm run typecheck && npm run gate1 && npm run gate1:mutations"
+    "verify": "npm run typecheck && npm run gate1 && npm run gate1:mutations",
+    "test": "node node_modules/vitest/vitest.mjs run"
   },
   "devDependencies": {
     "@types/node": "^24.19.2",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vitest": "^3.2.4"
   }
 }

@@ -1,0 +1,6 @@
+{
+  "name": "@genesis/web",
+  "private": true,
+  "type": "module",
+  "dependencies": { "@genesis/save": "*", "@genesis/engine": "*" }
+}

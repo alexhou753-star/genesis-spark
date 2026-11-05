@@ -1,0 +1,7 @@
+{
+  "name": "@genesis/save",
+  "private": true,
+  "type": "module",
+  "types": "src/types.ts",
+  "dependencies": { "@genesis/engine": "*" }
+}

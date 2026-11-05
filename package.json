@@ -1,0 +1,22 @@
+{
+  "name": "genesis-spark",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/configs",
+    "packages/engine",
+    "packages/save",
+    "packages/sim-cli",
+    "packages/web"
+  ],
+  "scripts": {
+    "typecheck": "node node_modules/typescript/bin/tsc -b packages/configs packages/engine packages/save",
+    "gate1": "node packages/configs/out/src/gate1.js",
+    "gate1:mutations": "node packages/configs/out/src/gate1.mutations.js",
+    "verify": "npm run typecheck && npm run gate1 && npm run gate1:mutations"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "typescript": "5.9.3"
+  }
+}

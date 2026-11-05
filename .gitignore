@@ -1,0 +1,5 @@
+node_modules/
+out/
+*.tsbuildinfo
+dist/
+.DS_Store

@@ -1,0 +1,7 @@
+{
+  "name": "@genesis/configs",
+  "private": true,
+  "type": "module",
+  "main": "out/types.js",
+  "types": "src/types.ts"
+}

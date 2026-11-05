@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "module": "nodenext",
+    "types": [],
+    "outDir": "out",
+    "composite": true,
+    "declaration": true,
+    "moduleResolution": "nodenext",
+    "lib": [
+      "ES2022",
+      "DOM"
+    ]
+  },
+  "include": [
+    "src"
+  ],
+  "references": [
+    {
+      "path": "../configs"
+    }
+  ]
+}

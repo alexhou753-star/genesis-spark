@@ -1,0 +1,8 @@
+{
+  "name": "@genesis/engine",
+  "private": true,
+  "type": "module",
+  "main": "out/types.js",
+  "types": "src/types.ts",
+  "dependencies": { "@genesis/configs": "*" }
+}

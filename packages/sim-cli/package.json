@@ -1,0 +1,6 @@
+{
+  "name": "@genesis/sim-cli",
+  "private": true,
+  "type": "module",
+  "dependencies": { "@genesis/save": "*", "@genesis/configs": "*" }
+}

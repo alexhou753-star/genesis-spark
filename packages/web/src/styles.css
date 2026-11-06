@@ -1,0 +1,500 @@
+/*
+ * FR-29 基础版 · M1 收官验收对象
+ * =============================================================================
+ * styles.css —— 移动端优先样式
+ * 依据：任务约束 5（样式）；FR-29（手机竖屏 360×640 无横向滚动、点击目标 ≥ 44 px、
+ *       预警不只靠颜色）；NFR-16（色盲友好、字号可调、预警配图标与文字）。
+ *
+ * 设计要点：
+ *   1. 默认暗色主题（:root 定义色板），并提供「跟随系统亮色」的可选覆盖。
+ *   2. 360px 起无横向滚动：全站 box-sizing、容器 100% 宽、禁止水平溢出。
+ *   3. 资源条 flex-wrap，每项最小宽度 72px；> 4 资源时保留换行/横向滚动能力。
+ *   4. 建筑卡用 CSS Grid；所有可点元素 min-height / min-width ≥ 44px。
+ *   5. 预警配色使用「图标 ⚠ + 文字」，颜色只是辅助（色盲友好：强调用边框/图标而非纯色）。
+ *   6. 季节仪表固定右上角（position: fixed）。
+ */
+
+/* ===================== 一、色板与全局（默认暗色主题） ===================== */
+:root {
+  --bg: #12151b;
+  --bg-elev: #1b2029;
+  --bg-elev-2: #232a36;
+  --text: #e7ecf3;
+  --text-dim: #9aa6b8;
+  --line: #2c3542;
+  --accent: #4f9cff;
+  --accent-strong: #2f7fe0;
+  --warn: #ff9d3c;
+  --danger: #ff5a5a;
+  --ok: #43c08a;
+  --nav-bg: #161a21;
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+  /* 触控最小边（FR-29：点击目标 ≥ 44px） */
+  --tap: 44px;
+  /* 字号可调：在 html 上覆盖即可整体缩放（NFR-16） */
+  --font-base: 15px;
+  --radius: 10px;
+}
+
+/* 跟随系统亮色（可选；默认仍是暗色） */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f4f6fa;
+    --bg-elev: #ffffff;
+    --bg-elev-2: #eef1f6;
+    --text: #1a2230;
+    --text-dim: #5a6678;
+    --line: #d7dde7;
+    --nav-bg: #ffffff;
+    --shadow: 0 2px 10px rgba(20, 30, 50, 0.12);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-size: var(--font-base);
+  font-family: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  line-height: 1.35;
+  /* 关键：手机竖屏禁止横向滚动（FR-29） */
+  max-width: 100%;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ===================== 二、顶部资源条 ===================== */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  padding-top: calc(8px + env(safe-area-inset-top, 0px));
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.resource-strip {
+  flex: 1 1 auto;
+  display: flex;
+  flex-wrap: wrap; /* 资源条 flex-wrap；每项最小 72px */
+  gap: 8px;
+  /* >4 资源时若一行放不下则换行；同时保留横向滚动兜底，避免溢出 */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.resource-chip {
+  flex: 0 0 auto;
+  min-width: 72px; /* 每项最小宽度 72px */
+  min-height: var(--tap);
+  padding: 6px 9px;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+
+.resource-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  align-items: baseline;
+}
+.resource-name {
+  font-weight: 600;
+  font-size: 0.86em;
+}
+.resource-amount {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+  font-size: 0.8em;
+}
+.resource-meta {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.78em;
+  color: var(--text-dim);
+}
+.resource-eta {
+  font-size: 0.74em;
+  color: var(--text-dim);
+}
+.resource-warn {
+  font-size: 0.76em;
+  font-weight: 700;
+  color: var(--warn);
+}
+
+/* 预警态：边框 + 图标文字同时表达，不只靠颜色（色盲友好） */
+.resource-chip.is-warning {
+  border-width: 2px;
+}
+.resource-chip.warn-cap {
+  border-color: var(--warn);
+  background: rgba(255, 157, 60, 0.12);
+}
+.resource-chip.warn-empty,
+.resource-chip.warn-chain {
+  border-color: var(--danger);
+  background: rgba(255, 90, 90, 0.12);
+}
+.resource-chip.warn-cap .resource-warn {
+  color: var(--warn);
+}
+.resource-chip.warn-empty .resource-warn,
+.resource-chip.warn-chain .resource-warn {
+  color: var(--danger);
+}
+
+.topbar-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+}
+
+/* ===================== 三、季节仪表（固定右上角） ===================== */
+.season-gauge {
+  position: fixed;
+  top: calc(64px + env(safe-area-inset-top, 0px));
+  right: 10px;
+  z-index: 30;
+  min-width: 96px;
+  padding: 8px 10px;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  text-align: right;
+}
+.season-label {
+  font-size: 0.72em;
+  color: var(--text-dim);
+}
+.season-name {
+  font-size: 1.15em;
+  font-weight: 700;
+}
+.season-remaining {
+  font-size: 0.78em;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+.season-forewarn {
+  margin-top: 4px;
+  font-size: 0.76em;
+  font-weight: 700;
+  color: var(--warn);
+}
+
+/* ===================== 四、主视图 ===================== */
+.main {
+  padding: 10px 10px calc(72px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section-title {
+  margin: 4px 0 6px;
+  font-size: 0.95em;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+/* ---- 断链预警区（非模态、就地显示） ---- */
+.warnings {
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+}
+.warnings.has-warning {
+  border-width: 2px;
+  border-color: var(--danger);
+  background: rgba(255, 90, 90, 0.08);
+}
+.warnings-title {
+  margin: 0 0 4px;
+  font-size: 0.9em;
+  font-weight: 700;
+}
+.warnings.has-warning .warnings-title {
+  color: var(--danger);
+}
+.warnings-empty {
+  margin: 0;
+  font-size: 0.82em;
+  color: var(--text-dim);
+}
+.warnings-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.warning-item {
+  font-size: 0.84em;
+  color: var(--text);
+}
+
+/* ---- 建筑卡列表（CSS Grid） ---- */
+.building-list {
+  display: grid;
+  grid-template-columns: 1fr; /* 手机单列；≥480px 自动两列 */
+  gap: 10px;
+}
+@media (min-width: 480px) {
+  .building-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.building-card {
+  display: grid;
+  grid-template-rows: auto auto auto auto;
+  gap: 6px;
+  padding: 10px;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.building-card.is-warning {
+  border-width: 2px;
+  border-color: var(--danger);
+}
+.building-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.building-name {
+  font-weight: 700;
+}
+.building-count {
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+.building-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+.building-stats .stat {
+  font-size: 0.82em;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+.building-warn {
+  font-size: 0.82em;
+  font-weight: 700;
+  color: var(--danger);
+}
+.building-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ---- 科技区 ---- */
+.techs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tech-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 10px;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  min-height: var(--tap);
+}
+.tech-name {
+  font-weight: 600;
+}
+.techs-empty {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 0.84em;
+}
+
+/* ---- 控制条（推进纪元 + 内政岗位） ---- */
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.era-name {
+  font-weight: 600;
+}
+.jobs-label {
+  color: var(--text-dim);
+  font-size: 0.85em;
+}
+.job-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.job-name {
+  font-size: 0.82em;
+  color: var(--text-dim);
+  min-width: 40px;
+}
+
+/* ---- 状态区 ---- */
+.status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-height: 20px;
+  font-size: 0.8em;
+  color: var(--text-dim);
+}
+.status[data-paused="true"] .status-paused {
+  color: var(--warn);
+  font-weight: 700;
+}
+.status-envelope {
+  color: var(--ok);
+}
+.status-ack {
+  color: var(--danger);
+}
+
+/* ===================== 五、按钮（点击目标 ≥ 44px） ===================== */
+.btn {
+  min-height: var(--tap);
+  min-width: var(--tap);
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-elev-2);
+  color: var(--text);
+  font-size: 0.9em;
+  font-weight: 600;
+  cursor: pointer;
+  /* 便于触控：去掉双击缩放延迟的观感差异 */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-build {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  color: #fff;
+  width: 100%;
+}
+.btn-build:disabled {
+  background: var(--bg-elev-2);
+  border-color: var(--line);
+  color: var(--text-dim);
+}
+.btn-advance {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  color: #fff;
+}
+.btn-research {
+  min-height: var(--tap);
+}
+.btn-pause {
+  min-height: var(--tap);
+}
+
+/* ===================== 六、底部六导航 ===================== */
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  background: var(--nav-bg);
+  border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.35);
+}
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: var(--tap);
+  padding: 6px 2px;
+  border: 0;
+  background: transparent;
+  color: var(--text-dim); /* 其余灰 */
+  font-size: 0.72em;
+  cursor: pointer;
+}
+.nav-item .nav-icon {
+  font-size: 1.15em;
+  line-height: 1;
+}
+.nav-item.is-active {
+  color: var(--accent); /* 文明亮 */
+  font-weight: 700;
+}
+.nav-item.is-active .nav-label {
+  color: var(--accent);
+}
+.nav-item:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.nav-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* ===================== 七、无障碍：尊重减弱动效 ===================== */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+  .btn:active {
+    transform: none;
+  }
+}

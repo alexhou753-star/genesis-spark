@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<!--
+  FR-29 基础版 · M1 收官验收对象
+  =============================================================================
+  index.html —— 页面骨架（移动端优先）
+  依据：FR-29（同屏信息架构与预警）、任务约束 4（页面骨架）、FR-10（季节仪表）、
+        NFR-16（无障碍：预警不只靠颜色）、NFR-17（手机单手可完成 P0 操作）。
+  结构：
+    <header> 顶部资源条（>4 资源横向滚动）+ 暂停/恢复按钮
+    <aside>  季节仪表（固定右上角）
+    <main>   断链预警区 / 建筑卡列表 / 科技 / 控制条（推进纪元 + 内政岗位）/ 状态
+    <nav>    底部六导航（文明亮、其余灰，M1 只亮「文明」）
+  各容器 id 与 host.ts 的 collectHostElements 约定一致。
+-->
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <!-- 手机竖屏 360×640 起无需横向滚动：width=device-width 禁止初始缩放 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark light" />
+    <title>创世火种 · FR-29 基础版</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <!-- ============ 顶部资源条（横向滚动 if > 4 资源） ============ -->
+    <header class="topbar" role="banner">
+      <div class="resource-strip" id="resource-strip" aria-label="资源条">
+        <!-- 由 host.ts 渲染资源 chip -->
+      </div>
+      <div class="topbar-actions">
+        <!-- 暂停 / 恢复（app.ts 绑定；暂停时 tick 不走） -->
+        <button id="btn-pause" class="btn btn-pause" type="button" aria-label="暂停或恢复游戏">
+          暂停
+        </button>
+      </div>
+    </header>
+
+    <!-- ============ 季节仪表（固定右上角，当前季节 + 剩余时间） ============ -->
+    <aside class="season-gauge" id="season-gauge" aria-label="季节仪表">
+      <!-- 由 host.ts 渲染 -->
+    </aside>
+
+    <!-- ============ 主视图 ============ -->
+    <main class="main" role="main">
+      <!-- 断链预警区（非模态、就地显示；不只靠颜色） -->
+      <section class="warnings" id="warnings" aria-live="polite" aria-label="断链与边界预警">
+        <!-- 由 host.ts 渲染 -->
+      </section>
+
+      <!-- 建筑卡列表 -->
+      <section class="buildings-section">
+        <h2 class="section-title">建筑</h2>
+        <div class="building-list" id="building-list">
+          <!-- 由 host.ts 渲染建筑卡 -->
+        </div>
+      </section>
+
+      <!-- 科技（RESEARCH 按钮由 host.ts 渲染） -->
+      <section class="techs-section">
+        <h2 class="section-title">科技</h2>
+        <div id="techs" class="techs">
+          <!-- 由 host.ts 渲染 -->
+        </div>
+      </section>
+
+      <!-- 控制条：推进纪元（ADVANCE_ERA）+ 内政岗位（ASSIGN_JOB） -->
+      <section id="controls" class="controls" aria-label="纪元与内政控制">
+        <!-- 由 host.ts 渲染 -->
+      </section>
+
+      <!-- 状态提示：暂停态 / 命令回执 / 信封同步 -->
+      <div id="status" class="status" aria-live="polite">
+        <!-- 由 host.ts 渲染 -->
+      </div>
+    </main>
+
+    <!-- ============ 底部六导航（文明亮、其余灰；M1 只亮「文明」） ============ -->
+    <nav class="bottom-nav" aria-label="主导航">
+      <button class="nav-item is-active" type="button" aria-current="page" data-nav="civilization">
+        <span class="nav-icon" aria-hidden="true">🏕</span>
+        <span class="nav-label">文明</span>
+      </button>
+      <button class="nav-item" type="button" disabled data-nav="eco">
+        <span class="nav-icon" aria-hidden="true">🌱</span>
+        <span class="nav-label">生态</span>
+      </button>
+      <button class="nav-item" type="button" disabled data-nav="governance">
+        <span class="nav-icon" aria-hidden="true">🏛</span>
+        <span class="nav-label">内政</span>
+      </button>
+      <button class="nav-item" type="button" disabled data-nav="tech">
+        <span class="nav-icon" aria-hidden="true">🔬</span>
+        <span class="nav-label">科技</span>
+      </button>
+      <button class="nav-item" type="button" disabled data-nav="reset">
+        <span class="nav-icon" aria-hidden="true">♻</span>
+        <span class="nav-label">重置</span>
+      </button>
+      <button class="nav-item" type="button" disabled data-nav="codex">
+        <span class="nav-icon" aria-hidden="true">📖</span>
+        <span class="nav-label">图鉴</span>
+      </button>
+    </nav>
+
+    <noscript>本原型需要启用 JavaScript 与 Web Worker 才能运行。</noscript>
+
+    <!-- 主线程入口（编译后为 app.js） -->
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

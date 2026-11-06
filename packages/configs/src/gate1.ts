@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import type {
   BuildingCategory, BuildingConfig, EraConfig, GameConfig, JobConfig, ModifierConfig, ModifierOp,
-  RaceConfig, RaceKind, ResourceKind, Sustenance,
+  RaceConfig, RaceKind, ResourceKind, Sustenance, UnlockCondition,
 } from './types.js';
 import { M1_CONFIG } from './config.m1.js';
 
@@ -38,6 +38,7 @@ export const COVERAGE: ReadonlyArray<readonly [string, string, string]> = [
   ['每种资源有产出源、每个工种有提供岗位上限的建筑', 'G1-10', '已实现：全局视图 + 每个种族视图各校验一遍'],
   ['每个纪元首批建筑与门槛成本不超过当时可达上限', 'G1-12', '已实现：简化估算，见 MAX_STORAGE_UNITS；每个种族按 resourceMap 映射后各算一遍'],
   ['配置速率单位必须为每秒', 'G1-05 / G1-06', '已实现：键名不得含 tick；周期必须是整数秒（保证 100/250/1000 ms 都能精确换算）'],
+  ['重置层引用与结构', 'G1-25', '已实现：resetLayers 的 id 唯一、index 非负整数；UnlockCondition.resetLayer 的 layer 须引用 resetLayers 已声明的层；resetLayers 未提供时跳过（resetCounts 属运行时状态，不在 Gate 1 校验其键）'],
   ['外观主题配置不含数值字段', '—', '未覆盖：M1 没有主题配置，随 FR-34（M4）补'],
   ['四阶段之间无反向依赖', '—', '未覆盖：不属于配置校验，用 ESLint 边界规则或 dependency-cruiser，W1 接入'],
 ];
@@ -518,6 +519,35 @@ export function validateConfig(c: GameConfig): Gate1Report {
       const referenced = new Set(c.seeds.map((s) => s.yieldOrderId));
       for (const rid of orderResIds) {
         if (!referenced.has(rid)) err('G1-20', `订单物资源 ${rid} 未被任何种子（SeedConfig.yieldOrderId）引用（孤儿订单物）`);
+      }
+    }
+  }
+
+  // ---- v0.4.1（长期可玩性最小类型修正 T3）：重置层结构与引用校验（resetLayers 未提供时全部跳过）。
+  //  说明：resetCounts 属运行时状态（PermaState），其键无法在构建期静态校验；
+  //  Gate 1 只对配置可表达的 UnlockCondition.resetLayer 做层引用校验。
+  //  UnlockCondition 的收集点：automation 的 governorRuleSlots / queueLengthCaps / autoReplant / autoBuild；
+  //  未来其它配置若引入 UnlockCondition，在此登记其收集点即可。
+  if (c.resetLayers !== undefined) {
+    const resetLayerIds = new Set(c.resetLayers.map((l) => l.id));
+    const seenLayerId = new Set<string>();
+    for (const l of c.resetLayers) {
+      // id 全表唯一
+      if (seenLayerId.has(l.id)) err('G1-25', `resetLayers 出现重复的层 id: ${l.id}`);
+      seenLayerId.add(l.id);
+      // index 非负整数
+      if (!Number.isInteger(l.index) || l.index < 0) err('G1-25', `重置层 ${l.id} 的 index=${l.index} 须为非负整数`);
+    }
+    if (c.automation !== undefined) {
+      const conditions: Array<[string, UnlockCondition]> = [];
+      c.automation.governorRuleSlots.forEach((s, i) => conditions.push([`automation.governorRuleSlots[${i}].unlock`, s.unlock]));
+      c.automation.queueLengthCaps.forEach((s, i) => conditions.push([`automation.queueLengthCaps[${i}].unlock`, s.unlock]));
+      if (c.automation.autoReplant !== undefined) conditions.push(['automation.autoReplant', c.automation.autoReplant]);
+      if (c.automation.autoBuild !== undefined) conditions.push(['automation.autoBuild', c.automation.autoBuild]);
+      for (const [where, cond] of conditions) {
+        if (cond.kind === 'resetLayer' && !resetLayerIds.has(cond.layer)) {
+          err('G1-25', `${where} 引用了不存在的重置层 ${cond.layer}（resetLayers 未声明该层）`);
+        }
       }
     }
   }

@@ -3,6 +3,12 @@
  * 位置：packages/configs/src/types.ts。依赖图的根：不得 import 任何其他包（架构 3.1）。
  * 依据：PRD v3.1 修订 6、技术架构 v2.1。
  *
+ * v0.4.1 增补（长期可玩性最小类型修正 T2）：
+ *  - 新增 ResetLayerId = Id 与 ResetLayerConfig（重置层清单真源；每层可新增机制引用，后续再扩展，当前只占位）；
+ *  - GameConfig 追加可选字段 resetLayers?: ResetLayerConfig[]（本轮 config.m1.ts 未提供，Gate 1 相关校验跳过）；
+ *  - UnlockCondition.resetLayer 的 layer 类型由字面量 'ash' | 'seed' 改为 ResetLayerId，times 语义不变。
+ *  仅新增类型 / 可选字段与泛化一处引用，不改动既有判别联合的其他字段与数值语义。
+ *
  * v0.4.1 增补（批次一/A 组，数值占位待审）：
  *  A1 行政算力三消费者：AdminPowerConfig 补来源与不足行为（perBuildingSource / perTechSource / perEraGain / perNeighborActionCost / insufficientBehavior）。
  *  A2 FR-48 渐进解锁强制点：新增 UnlockCondition 与 AutomationUnlockConfig，GameConfig.automation。
@@ -49,6 +55,8 @@ export type TechId = Id;
 export type RaceId = Id;
 export type EraId = Id;
 export type SeasonId = Id;
+/** v0.4.1: 重置层 ID 别名（引用 Id）；具体层清单由 GameConfig.resetLayers 声明（真源）。 */
+export type ResetLayerId = Id;
 
 // ---------------------------------------------------------------------------
 // 修饰器配置（架构 5.8）
@@ -98,12 +106,14 @@ export interface ModifierConfig {
  * 未满足条件的策略不得执行（前期不得满 10 队列 / 全部规则）。三种判别形式：
  *   era：纪元序号达到 eraIndex（对应 EraConfig.index）；
  *   tech：已研究 techId；
- *   resetLayer：某重置层（'ash' 灰烬 / 'seed' 播种）累计执行次数达到 times（依据 PermaState.resetCounts）。
+ *   resetLayer：某重置层（layer: ResetLayerId）累计执行次数达到 times（依据 PermaState.resetCounts）。
+ * v0.4.1（T2）：resetLayer 的 layer 类型由 'ash' | 'seed' 泛化为 ResetLayerId，引用 GameConfig.resetLayers
+ *   声明的层清单；times 语义保持不变（累计执行次数达到 times）。层引用存在性由 Gate 1 校验。
  */
 export type UnlockCondition =
   | { kind: 'era'; eraIndex: number }
   | { kind: 'tech'; techId: TechId }
-  | { kind: 'resetLayer'; layer: 'ash' | 'seed'; times: number };
+  | { kind: 'resetLayer'; layer: ResetLayerId; times: number };
 
 /**
  * v0.4.1: 自动化渐进解锁配置（FR-48）。规则槽位上限与队列长度上限均按 UnlockCondition 逐阶段放开；
@@ -118,6 +128,24 @@ export interface AutomationUnlockConfig {
   autoReplant?: UnlockCondition;
   /** 自动建造解锁条件；不设表示暂不开放。 */
   autoBuild?: UnlockCondition;
+}
+
+// ---------------------------------------------------------------------------
+// 重置层（v0.4.1，长期可玩性最小类型修正 T2）
+// ---------------------------------------------------------------------------
+
+/**
+ * v0.4.1: 重置层配置（重置层清单的真源）。
+ * 【真源】GameConfig.resetLayers 是“有哪些重置层”的唯一真源；PermaState.resetCounts 的键、
+ *   UnlockCondition.resetLayer 的 layer 引用都应指向此处的层 id。
+ * 【可扩展】每层后续可新增机制引用（如解锁条件、成长公式等），当前仅占位 id / index / name 三字段，
+ *   后续再扩展；本轮不引入新机制。
+ * 【index】为该层的序号（非负整数，Gate 1 校验）；id 全表唯一（Gate 1 校验）。
+ */
+export interface ResetLayerConfig {
+  id: ResetLayerId;
+  index: number;
+  name: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -142,6 +170,12 @@ export interface GameConfig {
   jobs: JobConfig[];
   buildings: BuildingConfig[];
   techs: TechConfig[];
+  /**
+   * v0.4.1（T2）：重置层清单（可选，重置层语义的真源）。缺省表示当前配置未声明重置层；
+   * 此时 Gate 1 的 resetLayers 相关校验跳过，PermaState.resetCounts 仍可回落为旧的 ash / seed 两层。
+   * 以可选字段落地以兼容现有 config.m1.ts（本轮不修改配置文件，M1_CONFIG 暂未提供该段）。
+   */
+  resetLayers?: ResetLayerConfig[];
   /**
    * v0.4.1: FR-48 自动化渐进解锁（规则槽位 / 队列上限于解锁后才放开）。
    * 以可选字段落地，以兼容现有 config.m1.ts（本组不修改配置文件，M1_CONFIG 暂未提供该段）；

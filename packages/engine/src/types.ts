@@ -12,6 +12,10 @@
  *   （挂 RunState.failure）、母星折叠 HomeworldFoldState（挂 RunState.homeworldFold）；GameCommand 追加
  *   GOVERNMENT_CHOOSE。仅追加类型 / 字段 / 命令成员，不破坏已有联合。
  *
+ * v0.4.1 增补（长期可玩性最小类型修正 T1）：PermaState.resetCounts 由 Record<'ash' | 'seed', number>
+ *   改为 Partial<Record<ResetLayerId, number>>，层数由配置驱动、缺键视为 0、兼容旧存档；ResetLayerId 从
+ *   @genesis/configs 以 import type 引入。仅收窄/泛化该字段，不破坏既有状态语义。
+ *
  * v0.3 增补：UniverseRecord / universeId / starLevel（FR-25、26 入存档）、QueueItem 的最大可接受成本与暂停、RESET 带宇宙与星级。
  *
  * v0.2 相对 v0.1 的变更：
@@ -24,7 +28,7 @@
  *  4. 季节不入状态：当前季节与剩余时间由 currentTick 与 clock.seasonSec 推导（暂停时 tick 不走，天然满足 FR-10）。
  */
 
-import type { BuildingId, GameNum, Id, JobId, ModifierConfig, RaceId, ResId, TechId } from '@genesis/configs';
+import type { BuildingId, GameNum, Id, JobId, ModifierConfig, RaceId, ResetLayerId, ResId, TechId } from '@genesis/configs';
 
 export type SeedId = Id;
 export type CatalystId = Id;
@@ -84,9 +88,10 @@ export interface PermaState {
   universes: Record<Id, UniverseRecord>;
   /**
    * v0.4.1: 各重置层已执行次数（多层重置的成长空间状态基础，也是 A2 解锁条件 resetLayer 的求值依据）。
-   * 键固定为 'ash'（灰烬协议）与 'seed'（播种协议）两层；值为非负整数次数（初始 0）。
+   * 层数由配置（GameConfig.resetLayers 的 ResetLayerConfig[]）驱动，键为 ResetLayerId；缺键视为 0，兼容旧存档
+   * （旧存档仅含 ash / seed 两层）。值为非负整数次数（初始 0）。
    */
-  resetCounts: Record<'ash' | 'seed', number>;
+  resetCounts: Partial<Record<ResetLayerId, number>>;
   /** v0.4：V1.0 恒为空对象，类型层面限定为空（Record<string, never>），禁止塞入任意字段；后续版本再放开。 */
   extras: Record<string, never>;
 }

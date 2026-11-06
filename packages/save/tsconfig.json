@@ -6,7 +6,9 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "module": "nodenext",
-    "types": [],
+    "types": [
+      "node"
+    ],
     "outDir": "out",
     "composite": true,
     "declaration": true,
